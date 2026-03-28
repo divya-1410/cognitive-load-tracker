@@ -33,39 +33,47 @@ def end_session():
         messagebox.showwarning("Warning", "No data entered")
         return
 
+    # --- Calculations ---
     avg_focus = sum(focus_levels) / len(focus_levels)
 
-    # Fatigue detection
     fatigue_point = None
     for i in range(1, len(focus_levels)):
         if focus_levels[i] < focus_levels[i-1]:
             fatigue_point = time_points[i]
             break
 
-    # Peak performance
     max_focus = max(focus_levels)
     peak_time = time_points[focus_levels.index(max_focus)]
 
-    # Suggestions
-    if avg_focus < 3:
-        suggestion = "Improve environment & reduce distractions"
-    elif fatigue_point:
-        suggestion = "Take a break before fatigue point"
-    else:
-        suggestion = "Great consistency! Keep going"
+    # --- Recommendations ---
+    if avg_focus < 2:
+        suggestion = "Very low focus detected. Improve environment, reduce distractions, and get proper rest."
 
+    elif avg_focus < 3:
+        suggestion = "Focus is below average. Try shorter sessions and take regular breaks."
+
+    elif fatigue_point is not None:
+        suggestion = f"Your focus drops around {fatigue_point} minutes. Take a break before this time."
+
+    elif avg_focus >= 4:
+        suggestion = "Excellent focus! Maintain your current study pattern."
+
+    else:
+        suggestion = "Good consistency. Minor improvements can further boost performance."
+
+    # --- Result Display ---
     result = f"""
 Average Focus: {avg_focus:.2f}
 Peak Focus Time: {peak_time} mins
-Fatigue Point: {fatigue_point if fatigue_point else 'Not Detected'}
+Fatigue Point: {fatigue_point if fatigue_point is not None else 'Not Detected'}
 
-Suggestion:
+Recommendation:
 {suggestion}
 """
 
     messagebox.showinfo("Session Analysis", result)
 
-    # Graph
+    # --- Graph ---
     plt.figure()
     plt.plot(time_points, focus_levels, marker='o')
     plt.xlabel("Time (minutes)")
@@ -73,8 +81,6 @@ Suggestion:
     plt.title("Cognitive Load Tracker")
     plt.grid()
     plt.show()
-
-
 def reset_session():
     global focus_levels, time_points, time
     focus_levels = []

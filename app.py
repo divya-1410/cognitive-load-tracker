@@ -23,12 +23,32 @@ if st.button("Add Entry"):
 if st.button("End Session"):
     if st.session_state.focus_levels:
         avg = sum(st.session_state.focus_levels) / len(st.session_state.focus_levels)
+
         st.write(f"### Average Focus: {avg:.2f}")
+
+        # Detect fatigue
+        fatigue_point = None
+        for i in range(1, len(st.session_state.focus_levels)):
+            if st.session_state.focus_levels[i] < st.session_state.focus_levels[i-1]:
+                fatigue_point = st.session_state.time_points[i]
+                break
 
         # Graph
         plt.figure()
         plt.plot(st.session_state.time_points, st.session_state.focus_levels, marker='o')
+
+        # Highlight fatigue point
+        if fatigue_point:
+            plt.axvline(x=fatigue_point, linestyle='--')
+
         plt.xlabel("Time (minutes)")
         plt.ylabel("Focus Level")
-        plt.title("Cognitive Load Tracker")
+        plt.title("Cognitive Performance Analyzer")
+
         st.pyplot(plt)
+
+        # Insight message
+        if fatigue_point:
+            st.warning(f"⚠️ Fatigue starts around {fatigue_point} minutes")
+        else:
+            st.success("✅ No fatigue detected")

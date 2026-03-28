@@ -19,36 +19,50 @@ if st.button("Add Entry"):
     st.session_state.time += 10
     st.success("Entry added!")
 
-# End session
+#END SESSION
 if st.button("End Session"):
     if st.session_state.focus_levels:
         avg = sum(st.session_state.focus_levels) / len(st.session_state.focus_levels)
 
-        st.write(f"### Average Focus: {avg:.2f}")
-
-        # Detect fatigue
+        # Fatigue detection
         fatigue_point = None
         for i in range(1, len(st.session_state.focus_levels)):
             if st.session_state.focus_levels[i] < st.session_state.focus_levels[i-1]:
                 fatigue_point = st.session_state.time_points[i]
                 break
 
+        # Peak
+        max_focus = max(st.session_state.focus_levels)
+        peak_time = st.session_state.time_points[st.session_state.focus_levels.index(max_focus)]
+
+        # --- Recommendations ---
+        if avg < 2:
+            suggestion = "Very low focus detected. Improve environment, reduce distractions, and get proper rest."
+
+        elif avg < 3:
+            suggestion = "Focus is below average. Try shorter sessions and take regular breaks."
+
+        elif fatigue_point is not None:
+            suggestion = f"Your focus drops around {fatigue_point} minutes. Take a break before this time."
+
+        elif avg >= 4:
+            suggestion = "Excellent focus! Maintain your current study pattern."
+
+        else:
+            suggestion = "Good consistency. Minor improvements can further boost performance."
+
+        # --- Display ---
+        st.write(f"### Average Focus: {avg:.2f}")
+        st.write(f"🔥 Peak Focus Time: {peak_time} mins")
+        st.write(f"⚠️ Fatigue Point: {fatigue_point if fatigue_point else 'Not Detected'}")
+
+        st.write("### 💡 Recommendation:")
+        st.success(suggestion)
+
         # Graph
         plt.figure()
         plt.plot(st.session_state.time_points, st.session_state.focus_levels, marker='o')
-
-        # Highlight fatigue point
-        if fatigue_point:
-            plt.axvline(x=fatigue_point, linestyle='--')
-
         plt.xlabel("Time (minutes)")
         plt.ylabel("Focus Level")
-        plt.title("Cognitive Performance Analyzer")
-
+        plt.title("Cognitive Load Tracker")
         st.pyplot(plt)
-
-        # Insight message
-        if fatigue_point:
-            st.warning(f"⚠️ Fatigue starts around {fatigue_point} minutes")
-        else:
-            st.success("✅ No fatigue detected")
